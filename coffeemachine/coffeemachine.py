@@ -1,117 +1,146 @@
 class CoffeeMachine:
+    """
+    Класс, имитирующий работу кофемашины.
+    Управляется через состояние (state).
+    """
 
     def __init__(self):
+        # Инициализация начальных ресурсов
         self.water = 400
         self.milk = 540
         self.beans = 120
         self.cups = 9
         self.money = 550
+        # Начальное состояние машины
         self.state = "action"
 
-    def get_int(self, text):
+    def _safe_int_conversion(self, text):
+        """Вспомогательный метод: пробует превратить текст в число."""
         try:
             return int(text)
         except ValueError:
-            print("❌ Please enter a valid number!")
+            print(" Пожалуйста, введите корректное число!")
             return None
 
-    def process(self, user_input):
+    def handle_input(self, user_input):
+        """
+        Главный распределитель команд.
+        В зависимости от текущего состояния (self.state) вызывает нужный метод.
+        """
         if self.state == "action":
-            self.process_action(user_input)
+            self.main_menu_handler(user_input)
         elif self.state == "buy":
-            self.process_buy(user_input)
+            self.buy_coffee(user_input)
         elif self.state.startswith("fill"):
-            self.process_fill(user_input)
+            self.fill_resources(user_input)
 
-    def process_action(self, action):
+    def main_menu_handler(self, action):
+        """Обрабатывает основные команды главного меню."""
         if action == "buy":
             self.state = "buy"
-            print("What do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino, back – to main menu:")
+            print("Что хотите купить? 1 - эспрессо, 2 - латте, 3 - капучино, back – назад:")
+
         elif action == "fill":
             self.state = "fill_water"
-            print("Write how many ml of water do you want to add:")
+            print("Сколько мл воды вы хотите добавить:")
+
         elif action == "take":
-            print(f"I gave you ${self.money}")
+            print(f"Я выдала вам ${self.money}")
             self.money = 0
+
         elif action == "remaining":
-            self.print_remaining()
+            self.display_status()
+
         elif action == "exit":
             self.state = "exit"
-        else:
-            print("❌ Unknown command. Choose: buy, fill, take, remaining, exit.")
 
-    def process_buy(self, choice):
+        else:
+            print(" Неизвестная команда. Выберите: buy, fill, take, remaining, exit.")
+
+    def buy_coffee(self, choice):
+        """Логика покупки и приготовления кофе."""
         if choice == "back":
             self.state = "action"
             return
 
-        drinks = {
-            "1": {"water": 250, "milk": 0, "beans": 16, "cost": 4},
-            "2": {"water": 350, "milk": 75, "beans": 20, "cost": 7},
-            "3": {"water": 200, "milk": 100, "beans": 12, "cost": 6},
+        # Рецепты напитков
+        recipes = {
+            "1": {"water": 250, "milk": 0, "beans": 16, "cost": 4},  # Эспрессо
+            "2": {"water": 350, "milk": 75, "beans": 20, "cost": 7},  # Латте
+            "3": {"water": 200, "milk": 100, "beans": 12, "cost": 6},  # Капучино
         }
 
-        drink = drinks.get(choice)
+        drink = recipes.get(choice)
         if not drink:
-            print("❌ Unknown option.")
+            print(" Нет такого варианта.")
             self.state = "action"
             return
 
+        # Проверка ресурсов перед приготовлением
         if self.water < drink["water"]:
-            print("Sorry, not enough water!")
+            print("Извините, не хватает воды!")
         elif self.milk < drink["milk"]:
-            print("Sorry, not enough milk!")
+            print("Извините, не хватает молока!")
         elif self.beans < drink["beans"]:
-            print("Sorry, not enough coffee beans!")
+            print("Извините, не хватает зерен!")
         elif self.cups < 1:
-            print("Sorry, not enough disposable cups!")
+            print("Извините, закончились стаканчики!")
         else:
+            # Списываем ресурсы и добавляем деньги
             self.water -= drink["water"]
             self.milk -= drink["milk"]
             self.beans -= drink["beans"]
             self.cups -= 1
             self.money += drink["cost"]
-            print("I have enough resources, making you a coffee!")
+            print("Ресурсов достаточно, готовлю ваш кофе!")
 
+        # Возвращаемся в главное меню
         self.state = "action"
 
-    def process_fill(self, amount):
-        value = self.get_int(amount)
+    def fill_resources(self, amount):
+        """
+        Пошаговое пополнение запасов.
+        Состояние меняется по цепочке: вода -> молоко -> зерна -> стаканчики.
+        """
+        value = self._safe_int_conversion(amount)
         if value is None:
             return
 
         if self.state == "fill_water":
             self.water += value
             self.state = "fill_milk"
-            print("Write how many ml of milk do you want to add:")
+            print("Сколько мл молока добавить:")
 
         elif self.state == "fill_milk":
             self.milk += value
             self.state = "fill_beans"
-            print("Write how many grams of coffee beans do you want to add:")
+            print("Сколько грамм зерен добавить:")
 
         elif self.state == "fill_beans":
             self.beans += value
             self.state = "fill_cups"
-            print("Write how many disposable cups of coffee do you want to add:")
+            print("Сколько стаканчиков добавить:")
 
         elif self.state == "fill_cups":
             self.cups += value
-            self.state = "action"
+            self.state = "action"  # Завершили пополнение, возврат в меню
 
-    def print_remaining(self):
-        print("The coffee machine has:")
-        print(f"{self.water} ml of water")
-        print(f"{self.milk} ml of milk")
-        print(f"{self.beans} g of coffee beans")
-        print(f"{self.cups} disposable cups")
-        print(f"${self.money} of money")
+    def display_status(self):
+        """Вывод текущих запасов машины."""
+        print("\nСостояние кофемашины:")
+        print(f"{self.water} мл воды")
+        print(f"{self.milk} мл молока")
+        print(f"{self.beans} г кофейных зерен")
+        print(f"{self.cups} одноразовых стаканчиков")
+        print(f"${self.money} денег внутри\n")
 
 
+# --- Запуск программы ---
 machine = CoffeeMachine()
 
 while machine.state != "exit":
     if machine.state == "action":
-        print("Write action (buy, fill, take, remaining, exit):")
+        print("Выберите действие (buy, fill, take, remaining, exit):")
+
     user_input = input("> ")
-    machine.process(user_input)
+    machine.handle_input(user_input)
