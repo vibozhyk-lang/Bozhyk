@@ -1,4 +1,3 @@
-Владислав, [09.12.2025 9:40]
 class CoffeeMachine:
     """
     Класс, имитирующий работу кофемашины.
@@ -121,28 +120,25 @@ class CoffeeMachine:
             self.beans += value
             self.state = "fill_cups"
             print("Сколько стаканчиков добавить:")
-
-Владислав, [09.12.2025 9:40]
-elif self.state == "fill_cups":
+        elif self.state == "fill_cups":
             self.cups += value
             self.state = "action"  # Завершили пополнение, возврат в меню
 
-    def display_status(self):
-        """Вывод текущих запасов машины."""
-        print("\nСостояние кофемашины:")
-        print(f"{self.water} мл воды")
-        print(f"{self.milk} мл молока")
-        print(f"{self.beans} г кофейных зерен")
-        print(f"{self.cups} одноразовых стаканчиков")
-        print(f"${self.money} денег внутри\n")
+        def display_status(self):
+            """Вывод текущих запасов машины."""
+            print("\nСостояние кофемашины:")
+            print(f"{self.water} мл воды")
+            print(f"{self.milk} мл молока")
+            print(f"{self.beans} г кофейных зерен")
+            print(f"{self.cups} одноразовых стаканчиков")
+            print(f"${self.money} денег внутри\n")
 
+        # --- Запуск программы ---
+        machine = CoffeeMachine()
 
-# --- Запуск программы ---
-machine = CoffeeMachine()
+        while machine.state != "exit":
+            if machine.state == "action":
+                print("Выберите действие (buy, fill, take, remaining, exit):")
 
-while machine.state != "exit":
-    if machine.state == "action":
-        print("Выберите действие (buy, fill, take, remaining, exit):")
-
-    user_input = input("> ")
-    machine.handle_input(user_input)
+            user_input = input("> ")
+            machine.handle_input(user_input)
