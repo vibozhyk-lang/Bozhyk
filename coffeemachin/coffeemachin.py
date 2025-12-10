@@ -4,7 +4,7 @@ class CoffeeMachine:
     Управляется через состояние (state).
     """
 
-    def init(self):
+    def __init__(self):
         # Инициализация начальных ресурсов
         self.water = 400
         self.milk = 540
@@ -126,12 +126,13 @@ class CoffeeMachine:
 
         def display_status(self):
             """Вывод текущих запасов машины."""
-            print("\nСостояние кофемашины:")
-            print(f"{self.water} мл воды")
-            print(f"{self.milk} мл молока")
-            print(f"{self.beans} г кофейных зерен")
-            print(f"{self.cups} одноразовых стаканчиков")
-            print(f"${self.money} денег внутри\n")
+        print("\nСостояние кофемашины:")
+        print(f"{self.water} мл воды")
+        print(f"{self.milk} мл молока")
+        print(f"{self.beans} г кофейных зерен")
+        print(f"{self.cups} одноразовых стаканчиков")
+        print(f"${self.money} денег внутри\n")
+
 
         # --- Запуск программы ---
         machine = CoffeeMachine()
