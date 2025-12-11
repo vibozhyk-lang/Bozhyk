@@ -11,6 +11,7 @@ class CoffeeMachine:
         self.beans = 120
         self.cups = 9
         self.money = 550
+
         # Начальное состояние машины
         self.state = "action"
 
@@ -19,7 +20,7 @@ class CoffeeMachine:
         try:
             return int(text)
         except ValueError:
-            print(" Пожалуйста, введите корректное число!")
+            print("Пожалуйста, введите корректное число!")
             return None
 
     def handle_input(self, user_input):
@@ -55,7 +56,7 @@ class CoffeeMachine:
             self.state = "exit"
 
         else:
-            print(" Неизвестная команда. Выберите: buy, fill, take, remaining, exit.")
+            print("Неизвестная команда. Выберите: buy, fill, take, remaining, exit.")
 
     def buy_coffee(self, choice):
         """Логика покупки и приготовления кофе."""
@@ -72,7 +73,7 @@ class CoffeeMachine:
 
         drink = recipes.get(choice)
         if not drink:
-            print(" Нет такого варианта.")
+            print("Нет такого варианта.")
             self.state = "action"
             return
 
@@ -99,8 +100,8 @@ class CoffeeMachine:
 
     def fill_resources(self, amount):
         """
-        Пошаговое пополнение запасов.
-        Состояние меняется по цепочке: вода -> молоко -> зерна -> стаканчики.
+        Пошаговое пополнение запасов:
+        вода -> молоко -> зерна -> стаканчики.
         """
         value = self._safe_int_conversion(amount)
         if value is None:
@@ -120,12 +121,14 @@ class CoffeeMachine:
             self.beans += value
             self.state = "fill_cups"
             print("Сколько стаканчиков добавить:")
+
         elif self.state == "fill_cups":
             self.cups += value
-            self.state = "action"  # Завершили пополнение, возврат в меню
+            self.state = "action"
+            print("Пополнение завершено.")
 
-        def display_status(self):
-            """Вывод текущих запасов машины."""
+    def display_status(self):
+        """Вывод текущих запасов машины."""
         print("\nСостояние кофемашины:")
         print(f"{self.water} мл воды")
         print(f"{self.milk} мл молока")
@@ -134,12 +137,12 @@ class CoffeeMachine:
         print(f"${self.money} денег внутри\n")
 
 
-        # --- Запуск программы ---
-        machine = CoffeeMachine()
+# --- Запуск программы ---
+machine = CoffeeMachine()
 
-        while machine.state != "exit":
-            if machine.state == "action":
-                print("Выберите действие (buy, fill, take, remaining, exit):")
+while machine.state != "exit":
+    if machine.state == "action":
+        print("Выберите действие (buy, fill, take, remaining, exit):")
 
-            user_input = input("> ")
-            machine.handle_input(user_input)
+    user_input = input("> ")
+    machine.handle_input(user_input)
