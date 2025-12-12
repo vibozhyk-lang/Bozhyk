@@ -124,8 +124,8 @@ class CoffeeMachine:
             self.cups += value
             self.state = "action"  # Завершили пополнение, возврат в меню
 
-        def display_status(self):
-            """Вывод текущих запасов машины."""
+    def display_status(self):
+        """Вывод текущих запасов машины."""
         print("\nСостояние кофемашины:")
         print(f"{self.water} мл воды")
         print(f"{self.milk} мл молока")
@@ -135,11 +135,11 @@ class CoffeeMachine:
 
 
         # --- Запуск программы ---
-        machine = CoffeeMachine()
+machine = CoffeeMachine()
 
-        while machine.state != "exit":
-            if machine.state == "action":
-                print("Выберите действие (buy, fill, take, remaining, exit):")
+while machine.state != "exit":
+    if machine.state == "action":
+        print("Выберите действие (buy, fill, take, remaining, exit):")
 
-            user_input = input("> ")
-            machine.handle_input(user_input)
+    user_inp = input("> ")
+    machine.handle_input(user_inp)
