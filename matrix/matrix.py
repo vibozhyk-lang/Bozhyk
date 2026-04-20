@@ -1,174 +1,169 @@
-class Matrix:
-    def __init__(self, data):
-        self.data = data
-        self.rows = len(data)
-        self.cols = len(data[0]) if self.rows > 0 else 0
+class MatrixEntity:
+    def __init__(self, table):
+        self.storage = table
+        self.v_size = len(table)
+        self.h_size = len(table[0]) if self.v_size > 0 else 0
 
-    def print_matrix(self):
-        for row in self.data:
-            print(' '.join(map(lambda x: str(round(x, 2)), row)))
+    def display_content(self):
+        """Печать матрицы с форматированием :g для чистоты вывода"""
+        for line in self.storage:
+            print(' '.join(f"{round(val, 2):g}" for val in line))
 
-    def add(self, other):
-        if self.rows != other.rows or self.cols != other.cols:
-            print("ERROR")
+    def sum_with(self, other_entity):
+        """Поэлементное сложение матриц"""
+        if self.v_size != other_entity.v_size or self.h_size != other_entity.h_size:
+            print("Размерности объектов не совпадают.")
             return None
-        result = [[self.data[i][j] + other.data[i][j] for j in range(self.cols)]
-                  for i in range(self.rows)]
-        return Matrix(result)
 
-    def multiply_constant(self, c):
-        result = [[elem * c for elem in row] for row in self.data]
-        return Matrix(result)
+        total = [[self.storage[i][j] + other_entity.storage[i][j] for j in range(self.h_size)]
+                 for i in range(self.v_size)]
+        return MatrixEntity(total)
 
-    def multiply_matrix(self, other):
-        if self.cols != other.rows:
-            print("The operation cannot be performed.")
+    def scalar_product(self, factor):
+        """Умножение на произвольное число"""
+        scaled = [[point * factor for point in line] for line in self.storage]
+        return MatrixEntity(scaled)
+
+    def cross_product(self, second_mtx):
+        """Матричное умножение (строка на столбец)"""
+        if self.h_size != second_mtx.v_size:
+            print("Умножение невозможно: несовпадение сторон.")
             return None
-        result = [[sum(self.data[i][k] * other.data[k][j] for k in range(self.cols))
-                   for j in range(other.cols)] for i in range(self.rows)]
-        return Matrix(result)
 
-    def transpose(self, mode=1):
-        if mode == 1:
-            result = [[self.data[j][i] for j in range(self.rows)] for i in range(self.cols)]
-        elif mode == 2:
-            result = [[self.data[self.rows-1-j][self.cols-1-i] for j in range(self.rows)]
-                      for i in range(self.cols)]
-        elif mode == 3:
-            result = [list(reversed(row)) for row in self.data]
-        elif mode == 4:
-            result = list(reversed(self.data))
+        result_grid = [[sum(self.storage[i][k] * second_mtx.storage[k][j] for k in range(self.h_size))
+                        for j in range(second_mtx.h_size)] for i in range(self.v_size)]
+        return MatrixEntity(result_grid)
+
+    def flip(self, axis=1):
+        """Отражение и транспонирование матрицы"""
+        if axis == 1:  # Главная ось
+            final = [[self.storage[j][i] for j in range(self.v_size)] for i in range(self.h_size)]
+        elif axis == 2:  # Вторичная ось
+            final = [[self.storage[self.v_size - 1 - j][self.h_size - 1 - i] for j in range(self.v_size)]
+                     for i in range(self.h_size)]
+        elif axis == 3:  # Зеркало по вертикали
+            final = [row[::-1] for row in self.storage]
+        elif axis == 4:  # Зеркало по горизонтали
+            final = self.storage[::-1]
         else:
-            print("Invalid transpose mode")
             return None
-        return Matrix(result)
+        return MatrixEntity(final)
 
-    def determinant(self):
-        if self.rows != self.cols:
-            print("Cannot calculate determinant of non-square matrix.")
+    def get_determinant(self):
+        """Публичный интерфейс для получения определителя"""
+        if self.v_size != self.h_size:
+            print("Требуется только квадратная структура.")
             return None
-        return self._det_recursive(self.data)
+        return self._compute_det(self.storage)
 
-    def _det_recursive(self, matrix):
-        n = len(matrix)
-        if n == 1:
-            return matrix[0][0]
-        if n == 2:
-            return matrix[0][0]*matrix[1][1] - matrix[0][1]*matrix[1][0]
-        det = 0
-        for c in range(n):
-            minor = [row[:c] + row[c+1:] for row in matrix[1:]]
-            det += ((-1)**c) * matrix[0][c] * self._det_recursive(minor)
-        return det
+    def _compute_det(self, current_grid):
+        """Внутренний рекурсивный поиск детерминанта"""
+        limit = len(current_grid)
+        if limit == 1:
+            return current_grid[0][0]
+        if limit == 2:
+            return current_grid[0][0] * current_grid[1][1] - current_grid[0][1] * current_grid[1][0]
 
-    def inverse(self):
-        det = self.determinant()
-        if det == 0:
-            print("This matrix doesn't have an inverse.")
+        determinant = 0
+        for col in range(limit):
+            # Извлечение минора путем срезов
+            sub_part = [row[:col] + row[col + 1:] for row in current_grid[1:]]
+            determinant += ((-1) ** col) * current_grid[0][col] * self._compute_det(sub_part)
+        return determinant
+
+    def get_inverse(self):
+        """Генерация обратной матрицы"""
+        det = self.get_determinant()
+        if not det:
+            print("Матрица необратима (определитель = 0).")
             return None
-        n = self.rows
-        cofactors = []
-        for r in range(n):
-            cofactor_row = []
-            for c in range(n):
-                minor = [row[:c] + row[c+1:] for i, row in enumerate(self.data) if i != r]
-                cofactor_row.append(((-1) ** (r + c)) * self._det_recursive(minor))
-            cofactors.append(cofactor_row)
-        cofactors_T = [[cofactors[j][i] for j in range(n)] for i in range(n)]
-        inv = [[cofactors_T[i][j] / det for j in range(n)] for i in range(n)]
-        return Matrix(inv)
+
+        dim = self.v_size
+        # Формирование матрицы дополнений
+        complements = []
+        for r in range(dim):
+            row_vals = []
+            for c in range(dim):
+                minor_mtx = [line[:c] + line[c + 1:] for idx, line in enumerate(self.storage) if idx != r]
+                row_vals.append(((-1) ** (r + c)) * self._compute_det(minor_mtx))
+            complements.append(row_vals)
+
+        # Создание инвертированной сетки (транспонирование + деление)
+        inv_data = [[complements[j][i] / det for j in range(dim)] for i in range(dim)]
+        return MatrixEntity(inv_data)
 
 
-def read_matrix():
+def input_matrix_flow():
+    """Сценарий ручного ввода матрицы"""
     while True:
         try:
-            n, m = map(int, input("Enter matrix size (rows cols): > ").split())
+            raw_size = input("Укажите габариты (Строки Столбцы): ").split()
+            h, w = int(raw_size[0]), int(raw_size[1])
             break
-        except ValueError:
-            print("Please enter exactly two integers separated by space.")
+        except (ValueError, IndexError):
+            print("Ошибка: введите два целых значения через пробел.")
 
-    data = []
-    for i in range(n):
+    payload = []
+    print(f"Введите значения для сетки {h}x{w}:")
+    for i in range(h):
         while True:
-            row_input = input(f"Enter row {i+1}: > ").split()
-            if len(row_input) != m:
-                print(f"Please enter exactly {m} numbers.")
+            row_data = input(f"Строка {i + 1} > ").split()
+            if len(row_data) != w:
+                print(f"Должно быть ровно {w} элементов.")
                 continue
             try:
-                row = list(map(float, row_input))
-                data.append(row)
+                payload.append([float(x) for x in row_data])
                 break
             except ValueError:
-                print("Please enter valid numbers.")
-    return Matrix(data)
+                print("Допускаются только числа.")
+    return MatrixEntity(payload)
 
-def main():
+
+def run_app():
+    """Точка входа и управление меню"""
     while True:
-        print("\n1. Add matrices")
-        print("2. Multiply matrix by a constant")
-        print("3. Multiply matrices")
-        print("4. Transpose matrix")
-        print("5. Calculate a determinant")
-        print("6. Inverse matrix")
-        print("0. Exit")
-        choice = input("Your choice: > ")
+        print("\n=== КОНСОЛЬНЫЙ ВЫЧИСЛИТЕЛЬ ===")
+        print("1. Сложение\n2. Скалярное умножение\n3. Матричное произведение")
+        print("4. Трансформация\n5. Определитель\n6. Инвертирование\n0. Выйти")
 
-        if choice == '1':
-            print("For example: 2 2\nEnter first matrix:")
-            A = read_matrix()
-            print("Enter second matrix:")
-            B = read_matrix()
-            result = A.add(B)
-            if result:
-                print("The result is:")
-                result.print_matrix()
+        op = input("Выбор операции: ")
 
-        elif choice == '2':
-            A = read_matrix()
-            c = float(input("Enter constant: > "))
-            result = A.multiply_constant(c)
-            print("The result is:")
-            result.print_matrix()
+        if op == '1':
+            m1, m2 = input_matrix_flow(), input_matrix_flow()
+            res = m1.sum_with(m2)
+            if res: res.display_content()
 
-        elif choice == '3':
-            print("Enter first matrix:")
-            A = read_matrix()
-            print("Enter second matrix:")
-            B = read_matrix()
-            result = A.multiply_matrix(B)
-            if result:
-                print("The result is:")
-                result.print_matrix()
+        elif op == '2':
+            m = input_matrix_flow()
+            try:
+                val = float(input("Число: "))
+                m.scalar_product(val).display_content()
+            except ValueError:
+                print("Некорректный ввод числа.")
 
-        elif choice == '4':
-            print("Transpose modes:\n1. Main diagonal\n2. Side diagonal\n3. Vertical\n4. Horizontal")
-            mode = int(input("Your choice: > "))
-            A = read_matrix()
-            result = A.transpose(mode)
-            if result:
-                print("The result is:")
-                result.print_matrix()
+        elif op == '3':
+            m1, m2 = input_matrix_flow(), input_matrix_flow()
+            res = m1.cross_product(m2)
+            if res: res.display_content()
 
-        elif choice == '5':
-            A = read_matrix()
-            det = A.determinant()
-            if det is not None:
-                print("The result is:")
-                print(round(det, 2))
+        elif op == '4':
+            print("Оси: 1-Гл, 2-Поб, 3-Верт, 4-Гор")
+            mode_id = input("ID типа: ")
+            if mode_id in '1234':
+                input_matrix_flow().flip(int(mode_id)).display_content()
 
-        elif choice == '6':
-            A = read_matrix()
-            inv = A.inverse()
-            if inv:
-                print("The result is:")
-                inv.print_matrix()
+        elif op == '5':
+            d_val = input_matrix_flow().get_determinant()
+            if d_val is not None: print(f"Детерминант: {d_val}")
 
-        elif choice == '0':
+        elif op == '6':
+            res = input_matrix_flow().get_inverse()
+            if res: res.display_content()
+
+        elif op == '0':
+            print("Выход из системы...")
             break
-
-        else:
-            print("Invalid option")
 
 
 if __name__ == "__main__":
-    main()
+    run_app()
